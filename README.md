@@ -20,7 +20,10 @@ while true do
 
     if closestEnemy then
         local targetPos = closestEnemy.HumanoidRootPart.Position
-        mouse.Target = closestEnemy.HumanoidRootPart 
+     
+        local camera = workspace.CurrentCamera
+        local direction = (targetPos - camera.CFrame.Position).unit
+        camera.CFrame = CFrame.new(camera.CFrame.Position, camera.CFrame.Position + direction)
+       
     end
 end
-

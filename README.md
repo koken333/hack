@@ -1,11 +1,5 @@
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("333", "DarkTheme")
-local MainTab = Window:NewTab("Debug")
-local Section = MainTab:NewSection("ESP Debug")
-
-
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("ESP Hub", "DarkTheme")
 
 

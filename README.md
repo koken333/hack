@@ -5,6 +5,41 @@ local MainTab = Window:NewTab("Debug")
 local Section = MainTab:NewSection("ESP Debug")
 
 
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("ESP Hub", "DarkTheme")
+
+
+local Tab = Window:NewTab("Main")
+local Section = Tab:NewSection("Tools")
+
+Section:NewButton("Speed x3", "ทำให้เดินเร็ว", function()
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+gui.Name = "FoldGUI"
+
+local button = Instance.new("TextButton", gui)
+button.Size = UDim2.new(0, 120, 0, 35)
+button.Position = UDim2.new(0, 20, 0, 20)
+button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+button.Text = "📦 พับ UI"
+button.TextColor3 = Color3.new(1,1,1)
+button.TextScaled = true
+button.Font = Enum.Font.SourceSansBold
+button.ZIndex = 999999
+
+local toggled = true
+button.MouseButton1Click:Connect(function()
+    toggled = not toggled
+    for _, gui in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") and gui.Name ~= "FoldGUI" then
+            gui.Enabled = toggled
+        end
+    end
+    button.Text = toggled and "📦 พับ UI" or "📤 แสดง UI"
+end)
 local ESPEnabled = false
 
 

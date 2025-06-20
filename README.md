@@ -8,7 +8,7 @@ local function createESP(player)
     player.CharacterAdded:Connect(function(character)
         local highlight = Instance.new("Highlight")
         highlight.Name = "ESP_Highlight"
-        highlight.FillColor = Color3.fromRGB(255, 0, 0) -- สีแดง
+        highlight.FillColor = Color3.fromRGB(255, 0, 0) 
         highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
         highlight.FillTransparency = 0.3
         highlight.OutlineTransparency = 0

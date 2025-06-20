@@ -1,3 +1,3 @@
-if (player.Position - item.Position).Magnitude < 100 then
+if (player.Position - item.Position).Magnitude < 1000 then
    
 end

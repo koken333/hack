@@ -1,5 +1,3 @@
-# hack
-
 import re, threading, time
 import tkinter as tk
 from tkinter import ttk

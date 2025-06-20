@@ -1,14 +1,17 @@
+-- โหลด Kavo UI
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("🔥 ESP/Speed Hub", "DarkTheme")
+
+-- แท็บและหัวข้อ
 local MainTab = Window:NewTab("Main")
 local Section = MainTab:NewSection("Cheat Tools")
 
-
+-- ตัวแปรหลัก
 local ESPEnabled = false
 local SpeedEnabled = false
 local speedValue = 50
 
-
+-- ปุ่ม & สไลด์ใน GUI
 Section:NewToggle("ESP", "เปิด/ปิด ชื่อ+ระยะ", function(v)
     ESPEnabled = v
 end)
@@ -21,7 +24,7 @@ Section:NewSlider("ปรับความเร็ว", "เปลี่ยน
     speedValue = v
 end)
 
-
+-- ระบบ Speed Hack
 task.spawn(function()
     while true do
         task.wait(0.2)
@@ -34,7 +37,7 @@ task.spawn(function()
     end
 end)
 
-
+-- ระบบ ESP
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")

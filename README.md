@@ -1,51 +1,26 @@
-
 local player = game.Players.LocalPlayer
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-gui.Name = "FireGUI"
-gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
+local mouse = player:GetMouse()
 
+while true do
+    wait(0.01)
+    local closestEnemy = nil
+    local shortestDistance = math.huge
 
-local fireButton = Instance.new("TextButton")
-fireButton.Size = UDim2.new(0, 120, 0, 120)
-fireButton.Position = UDim2.new(1, -140, 1, -160) -- มุมขวาล่าง
-fireButton.Text = "ยิง!!"
-fireButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-fireButton.TextColor3 = Color3.new(1, 1, 1)
-fireButton.TextScaled = true
-fireButton.Font = Enum.Font.SourceSansBold
-fireButton.Parent = gui
+    for _, enemy in pairs(game.Workspace.Enemies:GetChildren()) do
+        if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+            local enemyPos = enemy.HumanoidRootPart.Position
+            local playerPos = player.Character.HumanoidRootPart.Position
+            local distance = (enemyPos - playerPos).magnitude
+            if distance < shortestDistance then
+                shortestDistance = distance
+                closestEnemy = enemy
+            end
+        end
+    end
 
-
-local function shoot()
-    print("🔫 ยิงไปแล้ว!") 
-    -- ตัวอย่าง: game.ReplicatedStorage.Shoot:FireServer()
+    if closestEnemy then
+        local targetPos = closestEnemy.HumanoidRootPart.Position
+        mouse.Target = closestEnemy.HumanoidRootPart 
+    end
 end
-
-
-local isFiring = false
-fireButton.MouseButton1Down:Connect(function()
-    isFiring = true
-    while isFiring do
-        shoot()
-        task.wait(0.05) -- ความเร็วในการยิง
-    end
-end)
-
-fireButton.MouseButton1Up:Connect(function()
-    isFiring = false
-end)
-
-
-fireButton.TouchTap:Connect(function()
-    isFiring = true
-    while isFiring do
-        shoot()
-        task.wait(0.05)
-    end
-end)
-
-UserInputService.TouchEnded:Connect(function()
-    isFiring = false
-end)
 

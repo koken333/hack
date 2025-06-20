@@ -1,15 +1,23 @@
+for _, npc in pairs(workspace:GetDescendants()) do
+    if npc:IsA("Model") and npc:FindFirstChildOfClass("Humanoid") and not game.Players:GetPlayerFromCharacter(npc) then
+        local hrp = npc:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            -- ล็อกตำแหน่ง
+            hrp.Anchored = true
+        end
 
-while task.wait(0.5) do
-    pcall(function()
-        local char = game.Players.LocalPlayer.Character
-        local humanoid = char:FindFirstChild("Humanoid")
+        -- หยุดเดิน
+        local humanoid = npc:FindFirstChildOfClass("Humanoid")
         if humanoid then
-            for _, name in ipairs({"BodyHeightScale", "BodyWidthScale", "BodyDepthScale", "HeadScale"}) do
-                local scale = humanoid:FindFirstChild(name)
-                if scale then
-                    scale.Value = 0.5
-                end
+            humanoid.WalkSpeed = 0
+            humanoid.JumpPower = 0
+        end
+
+        -- ลบ AI ถ้ามี
+        for _, v in pairs(npc:GetChildren()) do
+            if v:IsA("Script") or v:IsA("LocalScript") then
+                v:Destroy()
             end
         end
-    end)
+    end
 end

@@ -1,5 +1,3 @@
-for _, plr in pairs(game.Players:GetPlayers()) do
-   if plr ~= game.Players.LocalPlayer then
-      print(plr.Name, plr.Character and plr.Character.Humanoid.Health)
-   end
-end
+local tool = Instance.new("Tool")
+tool.Name = "Sword"
+tool.Parent = game.Players.LocalPlayer.Backpack 

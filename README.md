@@ -4,7 +4,7 @@ local RunService = game:GetService("RunService")
 
 local ESPEnabled = true
 
--- สร้าง UI ปุ่มเปิด/ปิด ESP บนหน้าจอ (มือถือ/PC)
+
 local function createToggleButton()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "ESP_Toggle_GUI"
@@ -28,7 +28,7 @@ local function createToggleButton()
     end)
 end
 
--- สร้าง Highlight เรืองแสงให้ตัวละคร
+
 local function addHighlight(character)
     if not character:FindFirstChild("ESP_Highlight") then
         local highlight = Instance.new("Highlight")
@@ -47,7 +47,7 @@ local function addHighlight(character)
     end
 end
 
--- สร้าง BillboardGUI แสดงชื่อ + ระยะทาง ตัวหนังสือเล็ก
+
 local function addNameTag(character, player)
     if character:FindFirstChild("Head") and not character:FindFirstChild("ESP_NameTag") then
         local billboard = Instance.new("BillboardGui")
@@ -81,7 +81,6 @@ local function addNameTag(character, player)
     end
 end
 
--- ฟังก์ชันหลัก ใส่ ESP ให้ผู้เล่น
 local function applyESP(player)
     if player == LocalPlayer then return end
     local function onCharacter(character)
@@ -95,13 +94,12 @@ local function applyESP(player)
     player.CharacterAdded:Connect(onCharacter)
 end
 
--- สร้าง UI ปุ่ม
+
 createToggleButton()
 
--- ใส่ ESP ให้ผู้เล่นที่อยู่ในเกมแล้ว
 for _, player in pairs(Players:GetPlayers()) do
     applyESP(player)
 end
 
--- ใส่ ESP ให้ผู้เล่นใหม่ที่เข้ามา
+
 Players.PlayerAdded:Connect(applyESP)

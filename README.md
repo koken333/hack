@@ -1,40 +1,50 @@
-
+-- โหลด Kavo UI Library
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("🔥 ESP/Speed Hub", "DarkTheme")
 
-
+-- TAB และ SECTION
 local MainTab = Window:NewTab("Main")
 local Section = MainTab:NewSection("Tools")
 
-
+-- ตัวแปร
 local ESPEnabled = false
 local SpeedEnabled = false
 local speedValue = 50
 
-Section:NewToggle("ESP ON/OFF", "เปิด/ปิดชื่อ + ระยะ", function(state)
+Section:NewToggle("ESP", "แสดงชื่อ + ระยะ", function(state)
     ESPEnabled = state
 end)
 
-Section:NewToggle("Speed Hack", "เปิด/ปิดความเร็ว", function(state)
+Section:NewToggle("Speed Hack", "เดินไว", function(state)
     SpeedEnabled = state
 end)
 
-
-Section:NewSlider("ปรับ Speed", "กำหนด WalkSpeed", 200, 16, function(val)
+Section:NewSlider("Speed", "ปรับความเร็ว", 200, 16, function(val)
     speedValue = val
 end)
 
+-- Speed Hack
+task.spawn(function()
+    while true do
+        task.wait(0.2)
+        if SpeedEnabled then
+            local char = game.Players.LocalPlayer.Character
+            if char and char:FindFirstChild("Humanoid") then
+                char.Humanoid.WalkSpeed = speedValue
+            end
+        end
+    end
+end)
 
+-- ESP (ชื่อ + ระยะ)
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
 function setupESP(player)
     if player == LocalPlayer then return end
-
     local function onChar(char)
         if char:FindFirstChild("Head") and not char:FindFirstChild("ESP_NameTag") then
-            -- Billboard แสดงชื่อ + ระยะ
             local tag = Instance.new("BillboardGui", char)
             tag.Name = "ESP_NameTag"
             tag.Adornee = char.Head
@@ -46,7 +56,6 @@ function setupESP(player)
             text.Size = UDim2.new(1, 0, 1, 0)
             text.BackgroundTransparency = 1
             text.TextColor3 = Color3.fromRGB(255, 255, 255)
-            text.TextStrokeTransparency = 0.5
             text.TextScaled = true
             text.Font = Enum.Font.SourceSans
             text.Text = ""
@@ -62,53 +71,46 @@ function setupESP(player)
             end)
         end
     end
-
     if player.Character then onChar(player.Character) end
     player.CharacterAdded:Connect(onChar)
 end
-
 
 for _, p in pairs(Players:GetPlayers()) do
     setupESP(p)
 end
 Players.PlayerAdded:Connect(setupESP)
 
-
-task.spawn(function()
-    while true do
-        task.wait(0.2)
-        if SpeedEnabled then
-            local char = LocalPlayer.Character
-            if char and char:FindFirstChild("Humanoid") then
-                char.Humanoid.WalkSpeed = speedValue
-            end
-        end
+------------------------------------------------
+-- 📦 ปุ่มพับ/ขยาย UI Kavo แบบ "โปรสัส"
+------------------------------------------------
+task.wait(1) -- รอให้ Kavo โหลดก่อน
+local kavoUI = nil
+for _, gui in pairs(LocalPlayer.PlayerGui:GetChildren()) do
+    if gui:FindFirstChild("MainFrame") then
+        kavoUI = gui
+        break
     end
-end)
+end
 
---------------------------------------------------
--- 📦 ปุ่มพับ/แสดง GUI ทั้งหมด (ยกเว้นปุ่มนี้)
---------------------------------------------------
-local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-gui.Name = "FoldGUI"
+if kavoUI then
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Size = UDim2.new(0, 120, 0, 35)
+    toggleBtn.Position = UDim2.new(0, 20, 0, 20)
+    toggleBtn.Text = "📦 พับ UI"
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+    toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+    toggleBtn.TextScaled = true
+    toggleBtn.Font = Enum.Font.SourceSansBold
+    toggleBtn.ZIndex = 999999
+    toggleBtn.Parent = kavoUI
 
-local button = Instance.new("TextButton", gui)
-button.Size = UDim2.new(0, 120, 0, 35)
-button.Position = UDim2.new(0, 20, 0, 20)
-button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-button.Text = "📦 พับ UI"
-button.TextColor3 = Color3.new(1,1,1)
-button.TextScaled = true
-button.Font = Enum.Font.SourceSansBold
-button.ZIndex = 999999
-
-local toggled = true
-button.MouseButton1Click:Connect(function()
-    toggled = not toggled
-    for _, g in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
-        if g:IsA("ScreenGui") and g.Name ~= "FoldGUI" then
-            g.Enabled = toggled
+    local isFolded = false
+    toggleBtn.MouseButton1Click:Connect(function()
+        isFolded = not isFolded
+        local mainFrame = kavoUI:FindFirstChild("MainFrame")
+        if mainFrame then
+            mainFrame.Visible = not isFolded
+            toggleBtn.Text = isFolded and "📤 แสดง UI" or "📦 พับ UI"
         end
-    end
-    button.Text = toggled and "📦 พับ UI" or "📤 แสดง UI"
-end)
+    end)
+end

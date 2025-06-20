@@ -6,3 +6,7 @@ if char and char:FindFirstChild("Humanoid") then
         end
     end
 end
+BodyHeightScale = 1
+BodyWidthScale = 1
+BodyDepthScale = 1
+HeadScale = 1

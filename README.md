@@ -1,12 +1,60 @@
--- โหลด Kavo UI Library
+
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("🔥 ESP/Speed Hub", "DarkTheme")
 
--- TAB และ SECTION
 local MainTab = Window:NewTab("Main")
-local Section = MainTab:NewSection("Tools")
+local Section = MainTab:
 
--- ตัวแปร
+task.wait(1) 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local kavoUI = nil
+for _, gui in pairs(LocalPlayer.PlayerGui:GetChildren()) do
+    if gui:FindFirstChild("MainFrame") then
+        kavoUI = gui
+        break
+    end
+end
+
+if kavoUI then
+    local frame = kavoUI:FindFirstChild("MainFrame")
+    if frame then
+        local UIS = game:GetService("UserInputService")
+        local dragging = false
+        local dragInput, dragStart, startPos
+
+        frame.Active = true
+        frame.Draggable = false 
+
+        frame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
+            end
+        end)
+
+        frame.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if dragging and dragInput then
+                local delta = dragInput.Position - dragStart
+                frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end)
+    end
+end
 local ESPEnabled = false
 local SpeedEnabled = false
 local speedValue = 50

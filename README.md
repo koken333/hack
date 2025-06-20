@@ -1,4 +1,4 @@
--- ลูปบังคับให้เล็กตลอดเวลา
+
 while task.wait(0.5) do
     pcall(function()
         local char = game.Players.LocalPlayer.Character

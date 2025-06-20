@@ -1,8 +1,5 @@
-
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("🔥 ESP/Speed Hub", "DarkTheme")
-
-
 local MainTab = Window:NewTab("Main")
 local Section = MainTab:NewSection("Cheat Tools")
 

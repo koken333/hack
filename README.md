@@ -1,91 +1,129 @@
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local camera = workspace.CurrentCamera
 
 local player = Players.LocalPlayer
+local mouse = player:GetMouse()
 
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
+local FOV = 150
+local AimlockEnabled = false
 
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 320, 0, 150)
-Frame.Position = UDim2.new(0, 15, 0.8, 0)
-Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-Frame.Active = true
-Frame.Draggable = true
-Frame.Parent = ScreenGui
 
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.Position = UDim2.new(0, 0, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "ระบบซื้อมอนสเตอร์อัตโนมัติ"
-Title.TextColor3 = Color3.new(1, 1, 1)
-Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 22
-Title.Parent = Frame
+local circle = Drawing.new("Circle")
+circle.Thickness = 2
+circle.NumSides = 60
+circle.Radius = FOV
+circle.Color = Color3.fromRGB(255, 255, 0)
+circle.Filled = false
+circle.Visible = true
+circle.Transparency = 1
+circle.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
 
-local InputBox = Instance.new("TextBox")
-InputBox.Size = UDim2.new(1, -20, 0, 40)
-InputBox.Position = UDim2.new(0, 10, 0, 40)
-InputBox.PlaceholderText = "พิมพ์ชื่อมอนสเตอร์ที่ต้องการซื้อ"
-InputBox.ClearTextOnFocus = false
-InputBox.Text = ""
-InputBox.Parent = Frame
 
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(1, -20, 0, 50)
-ToggleButton.Position = UDim2.new(0, 10, 0, 90)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
-ToggleButton.TextColor3 = Color3.new(1, 1, 1)
-ToggleButton.Text = "เปิดระบบซื้ออัตโนมัติ"
-ToggleButton.Parent = Frame
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "AimlockUI"
 
-local isEnabled = false
-local targetName = nil
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 250, 0, 160)
+frame.Position = UDim2.new(0, 30, 0.75, 0)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
 
-ToggleButton.MouseButton1Click:Connect(function()
-    isEnabled = not isEnabled
-    if isEnabled then
-        ToggleButton.Text = "ปิดระบบซื้ออัตโนมัติ"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-        targetName = InputBox.Text
-        print("ตั้งเป้าหมายซื้อเป็น:", targetName)
-    else
-        ToggleButton.Text = "เปิดระบบซื้ออัตโนมัติ"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
-    end
+local title = Instance.new("TextLabel", frame)
+title.Text = "🔫 Aimlock Settings"
+title.Size = UDim2.new(1, 0, 0, 30)
+title.TextColor3 = Color3.new(1, 1, 1)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 22
+
+local toggleButton = Instance.new("TextButton", frame)
+toggleButton.Size = UDim2.new(1, -20, 0, 40)
+toggleButton.Position = UDim2.new(0, 10, 0, 40)
+toggleButton.Text = "🔘 เปิด Aimlock"
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 18
+
+toggleButton.MouseButton1Click:Connect(function()
+    AimlockEnabled = not AimlockEnabled
+    toggleButton.Text = AimlockEnabled and "✅ ปิด Aimlock" or "🔘 เปิด Aimlock"
+    toggleButton.BackgroundColor3 = AimlockEnabled and Color3.fromRGB(170, 0, 0) or Color3.fromRGB(0, 170, 0)
 end)
 
-InputBox.FocusLost:Connect(function()
-    if isEnabled then
-        targetName = InputBox.Text
-        print("เปลี่ยนเป้าหมายซื้อเป็น:", targetName)
-    end
+local fovLabel = Instance.new("TextLabel", frame)
+fovLabel.Text = "ขนาดวงกลม: " .. FOV
+fovLabel.Size = UDim2.new(1, -20, 0, 20)
+fovLabel.Position = UDim2.new(0, 10, 0, 90)
+fovLabel.TextColor3 = Color3.new(1, 1, 1)
+fovLabel.BackgroundTransparency = 1
+fovLabel.Font = Enum.Font.SourceSans
+tfovLabel.TextSize = 16
+
+local up = Instance.new("TextButton", frame)
+up.Text = "⬆ เพิ่ม FOV"
+up.Size = UDim2.new(0.5, -15, 0, 30)
+up.Position = UDim2.new(0, 10, 0, 120)
+up.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+up.TextColor3 = Color3.new(1, 1, 1)
+up.Font = Enum.Font.SourceSansBold
+up.TextSize = 16
+
+local down = Instance.new("TextButton", frame)
+down.Text = "⬇ ลด FOV"
+down.Size = UDim2.new(0.5, -15, 0, 30)
+down.Position = UDim2.new(0.5, 5, 0, 120)
+down.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+down.TextColor3 = Color3.new(1, 1, 1)
+down.Font = Enum.Font.SourceSansBold
+down.TextSize = 16
+
+up.MouseButton1Click:Connect(function()
+    FOV = FOV + 10
+    circle.Radius = FOV
+    fovLabel.Text = "ขนาดวงกลม: " .. FOV
+end)
+
+down.MouseButton1Click:Connect(function()
+    FOV = math.max(50, FOV - 10)
+    circle.Radius = FOV
+    fovLabel.Text = "ขนาดวงกลม: " .. FOV
 end)
 
 
-local buyEvent = ReplicatedStorage:WaitForChild("BuyMonsterEvent")
-
-local function autoBuy()
-    if not isEnabled or not targetName or targetName == "" then return end
-
-    local monstersFolder = workspace:FindFirstChild("Monsters")
-    if not monstersFolder then return end
-
-    for _, monster in pairs(monstersFolder:GetChildren()) do
-        if monster.Name == targetName then
-           
-            buyEvent:FireServer(monster)
-            print("ซื้อมอนสเตอร์ชื่อ:", monster.Name)
-            wait(1) 
+local function getClosestTarget()
+    local closest, shortest = nil, math.huge
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            if not plr.Name:lower():find("ครูดาว") then
+                local pos, onscreen = camera:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
+                local dist = (Vector2.new(pos.X, pos.Y) - Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)).Magnitude
+                if onscreen and dist < FOV and dist < shortest then
+                    shortest = dist
+                    closest = plr
+                end
+            end
         end
     end
+    return closest
 end
 
-RunService.Heartbeat:Connect(function()
-    autoBuy()
+RunService.RenderStepped:Connect(function()
+    circle.Position = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
+
+    if AimlockEnabled then
+        local target = getClosestTarget()
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            camera.CFrame = CFrame.new(camera.CFrame.Position, target.Character.HumanoidRootPart.Position)
+        end
+    end
 end)
 
 

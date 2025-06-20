@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 local maxSpeed = 50
-local increment = 1
+local increment = 5
 local speed = 20  
 
 local function setSpeed()

@@ -6,28 +6,20 @@ local Camera = workspace.CurrentCamera
 
 -- ฟังก์ชันสร้างปุ่มสวยๆ
 local function createButton(parent, name, text, posY)
-	local cam = Camera
-	local closest, shortest = nil, math.huge
-
-	for _, p in pairs(Players:GetPlayers()) do
-		if p ~= LocalPlayer 
-			and p.Character 
-			and p.Character:FindFirstChild(aimPart) 
-			and not LocalPlayer:IsFriendsWith(p.UserId) then
-
-			local pos, onScreen = cam:WorldToViewportPoint(p.Character[aimPart].Position)
-			if onScreen then
-				local distToCenter = (Vector2.new(pos.X, pos.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
-				if distToCenter < shortest and distToCenter < fovRadius then
-					shortest = distToCenter
-					closest = p
-				end
-			end
-		end
-	end
-
-	return closest
+	local btn = Instance.new("TextButton")
+	btn.Name = name
+	btn.Size = UDim2.new(0, 150, 0, 40)
+	btn.Position = UDim2.new(0, 20, 0, posY)
+	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+	btn.BorderSizePixel = 0
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextScaled = true
+	btn.Text = text
+	btn.Parent = parent
+	return btn
 end
+
 local function createLabel(parent, text, posY)
 	local lbl = Instance.new("TextLabel")
 	lbl.Size = UDim2.new(0, 150, 0, 30)
@@ -61,11 +53,10 @@ end
 getgenv().ESPEnabled = false
 local ESPColor = Color3.fromRGB(0, 255, 0)
 
-local espGui = Instance.new("ScreenGui")
+local espGui = Instance.new("ScreenGui", PlayerGui)
 espGui.Name = "ESP_UI"
 espGui.ResetOnSpawn = false
 espGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-espGui.Parent = PlayerGui
 
 local toggleESPButton = createButton(espGui, "ToggleESPButton", "🔍 เปิด ESP", 20)
 toggleESPButton.MouseButton1Click:Connect(function()
@@ -131,14 +122,12 @@ fovCircle.Filled = false
 fovCircle.Radius = fovRadius
 fovCircle.Visible = false
 
-local fovGui = Instance.new("ScreenGui")
+local fovGui = Instance.new("ScreenGui", PlayerGui)
 fovGui.Name = "FOV_UI"
 fovGui.ResetOnSpawn = false
 fovGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-fovGui.Parent = PlayerGui
 
 local toggleFOVButton = createButton(fovGui, "ToggleFOVButton", "👁️ เปิด FOV", 75)
-
 local fovLabel = createLabel(fovGui, "FOV Radius: " .. fovRadius, 125)
 local fovInput = createTextbox(fovGui, fovRadius, 165)
 
@@ -178,11 +167,10 @@ end)
 getgenv().AimbotEnabled = false
 local aimPart = "Head"
 
-local aimbotGui = Instance.new("ScreenGui")
+local aimbotGui = Instance.new("ScreenGui", PlayerGui)
 aimbotGui.Name = "Aimbot_UI"
 aimbotGui.ResetOnSpawn = false
 aimbotGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-aimbotGui.Parent = PlayerGui
 
 local toggleAimbotButton = createButton(aimbotGui, "ToggleAimbotButton", "🎯 เปิด Aimbot", 210)
 toggleAimbotButton.MouseButton1Click:Connect(function()
@@ -190,15 +178,16 @@ toggleAimbotButton.MouseButton1Click:Connect(function()
 	toggleAimbotButton.Text = getgenv().AimbotEnabled and "❌ ปิด Aimbot" or "🎯 เปิด Aimbot"
 end)
 
+-- ✅ ฟังก์ชันที่ถูกแก้แล้ว: ไม่ล็อกเพื่อน, ไม่ล็อกตัวเอง
 local function getClosestTarget()
 	local cam = Camera
 	local closest, shortest = nil, math.huge
 
 	for _, p in pairs(Players:GetPlayers()) do
-		if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild(aimPart) then
+		if p ~= LocalPlayer and not LocalPlayer:IsFriendsWith(p.UserId) and p.Character and p.Character:FindFirstChild(aimPart) then
 			local pos, onScreen = cam:WorldToViewportPoint(p.Character[aimPart].Position)
 			if onScreen then
-				local distToCenter = (Vector2.new(pos.X, pos.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
+				local distToCenter = (Vector2.new(pos.X, pos.Y) - Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)).Magnitude
 				if distToCenter < shortest and distToCenter < fovRadius then
 					shortest = distToCenter
 					closest = p
@@ -218,4 +207,3 @@ RunService.RenderStepped:Connect(function()
 		end
 	end
 end)
-

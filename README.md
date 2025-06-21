@@ -1,71 +1,35 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("SHARK X HUB", "DarkTheme")
 
-local Tab = Window:NewTab("Players")
-local Section = Tab:NewSection("Teleport")
+-- เก็บหน้าต่างหลัก
+local MainUI = Window.MainFrame
+MainUI.Name = "SHARK_MAIN_UI"
 
-local players = {}
-local SelectPlayer
+-- ปุ่มลอย (ปุ่มเรียก UI)
+local OpenUIButton = Instance.new("TextButton")
+OpenUIButton.Name = "OpenUIButton"
+OpenUIButton.Text = "🦈 SHARK X"
+OpenUIButton.Size = UDim2.new(0, 120, 0, 40)
+OpenUIButton.Position = UDim2.new(0, 10, 0, 10) -- มุมบนซ้ายของจอ
+OpenUIButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+OpenUIButton.TextColor3 = Color3.new(1, 1, 1)
+OpenUIButton.Font = Enum.Font.SourceSansBold
+OpenUIButton.TextScaled = true
+OpenUIButton.Visible = false
+OpenUIButton.Parent = game.CoreGui
 
-local function refreshPlayerList()
-    table.clear(players)
-    for _, v in ipairs(game:GetService("Players"):GetPlayers()) do
-        table.insert(players, v.Name)
-    end
+-- ปุ่มในหัว UI สำหรับ "ปิด"
+local header = MainUI:WaitForChild("MainHeader")
+local closeBtn = header:FindFirstChild("close")
+if closeBtn then
+	closeBtn.MouseButton1Click:Connect(function()
+		MainUI.Visible = false
+		OpenUIButton.Visible = true -- โชว์ปุ่มลอย
+	end)
 end
-refreshPlayerList()
 
-Section:NewDropdown("Select Player", "Choose someone", players, function(text)
-    SelectPlayer = text
+-- คลิกปุ่มลอยเพื่อเปิด UI กลับมา
+OpenUIButton.MouseButton1Click:Connect(function()
+	MainUI.Visible = true
+	OpenUIButton.Visible = false
 end)
-Section:NewButton("Refresh", "Update player list", refreshPlayerList)
-Section:NewButton("Teleport", "Tp to selected player", function()
-    local target = game.Players:FindFirstChild(SelectPlayer)
-    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
-    end
-end)
-
--- สร้างปุ่ม Minimize/Restore ที่มุมขวาบนของ MainFrame
-local mainFrame = Window.MainFrame
-local header = mainFrame:WaitForChild("MainHeader")
-
-local minimizeBtn = Instance.new("TextButton")
-minimizeBtn.Name = "MinimizeButton"
-minimizeBtn.Text = "-"
-minimizeBtn.Font = Enum.Font.SourceSansBold
-minimizeBtn.TextColor3 = Color3.new(1, 1, 1)
-minimizeBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-minimizeBtn.BorderSizePixel = 0
-minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
-minimizeBtn.Position = UDim2.new(1, -35, 0, 5)
-minimizeBtn.AnchorPoint = Vector2.new(0, 0)
-minimizeBtn.ZIndex = 10
-minimizeBtn.Parent = header
-
-local isMinimized = false
-
-minimizeBtn.MouseButton1Click:Connect(function()
-    if isMinimized == false then
-        -- พับ UI: ซ่อนเนื้อหา ย่อขนาด
-        for _, child in ipairs(mainFrame:GetChildren()) do
-            if child ~= header and child ~= minimizeBtn then
-                child.Visible = false
-            end
-        end
-        mainFrame.Size = UDim2.new(0, 300, 0, 40) -- ย่อขนาดเหลือ header อย่างเดียว
-        minimizeBtn.Text = "+"
-        isMinimized = true
-    else
-        -- ขยาย UI: แสดงเนื้อหาและคืนขนาด
-        for _, child in ipairs(mainFrame:GetChildren()) do
-            if child ~= header and child ~= minimizeBtn then
-                child.Visible = true
-            end
-        end
-        mainFrame.Size = UDim2.new(0, 420, 0, 600) -- ขนาดปกติ ปรับตาม UI คุณ
-        minimizeBtn.Text = "-"
-        isMinimized = false
-    end
-end)
-

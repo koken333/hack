@@ -7,5 +7,3 @@ local Section = Tab:NewSection("spaw")
 Section:NewButton("spaw", "gohken", function()
     print("Clicked")
 end) 
-
-q

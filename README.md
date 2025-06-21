@@ -4,6 +4,52 @@ local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local Camera = workspace.CurrentCamera
 
+-- ฟังก์ชันสร้างปุ่มสวยๆ
+local function createButton(parent, name, text, posY)
+	local btn = Instance.new("TextButton")
+	btn.Name = name
+	btn.Size = UDim2.new(0, 140, 0, 45)
+	btn.Position = UDim2.new(0, 20, 0, posY)
+	btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+	btn.BorderSizePixel = 0
+	btn.AutoButtonColor = true
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Font = Enum.Font.GothamSemibold
+	btn.TextScaled = true
+	btn.Text = text
+	btn.Parent = parent
+	return btn
+end
+
+local function createLabel(parent, text, posY)
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.new(0, 150, 0, 30)
+	lbl.Position = UDim2.new(0, 20, 0, posY)
+	lbl.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+	lbl.BorderSizePixel = 0
+	lbl.TextColor3 = Color3.new(1, 1, 1)
+	lbl.Font = Enum.Font.GothamSemibold
+	lbl.TextScaled = true
+	lbl.Text = text
+	lbl.Parent = parent
+	return lbl
+end
+
+local function createTextbox(parent, defaultText, posY)
+	local tb = Instance.new("TextBox")
+	tb.Size = UDim2.new(0, 150, 0, 40)
+	tb.Position = UDim2.new(0, 20, 0, posY)
+	tb.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+	tb.BorderSizePixel = 0
+	tb.TextColor3 = Color3.new(1, 1, 1)
+	tb.Font = Enum.Font.GothamSemibold
+	tb.TextScaled = true
+	tb.ClearTextOnFocus = false
+	tb.Text = tostring(defaultText)
+	tb.Parent = parent
+	return tb
+end
+
 -- ====== ESP ======
 getgenv().ESPEnabled = false
 local ESPColor = Color3.fromRGB(0, 255, 0)
@@ -14,17 +60,7 @@ espGui.ResetOnSpawn = false
 espGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 espGui.Parent = PlayerGui
 
-local toggleESPButton = Instance.new("TextButton")
-toggleESPButton.Name = "ToggleESPButton"
-toggleESPButton.Size = UDim2.new(0, 130, 0, 40)
-toggleESPButton.Position = UDim2.new(0, 20, 0, 20)
-toggleESPButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-toggleESPButton.TextColor3 = Color3.new(1, 1, 1)
-toggleESPButton.Font = Enum.Font.SourceSansBold
-toggleESPButton.TextScaled = true
-toggleESPButton.Text = "🔍 เปิด ESP"
-toggleESPButton.Parent = espGui
-
+local toggleESPButton = createButton(espGui, "ToggleESPButton", "🔍 เปิด ESP", 20)
 toggleESPButton.MouseButton1Click:Connect(function()
 	getgenv().ESPEnabled = not getgenv().ESPEnabled
 	toggleESPButton.Text = getgenv().ESPEnabled and "❌ ปิด ESP" or "🔍 เปิด ESP"
@@ -43,8 +79,8 @@ local function createESP(player)
 		local tag = Instance.new("BillboardGui")
 		tag.Name = "ESP_Tag"
 		tag.Adornee = head
-		tag.Size = UDim2.new(0, 100, 0, 20)
-		tag.StudsOffset = Vector3.new(0, 2.5, 0)
+		tag.Size = UDim2.new(0, 120, 0, 25)
+		tag.StudsOffset = Vector3.new(0, 2.7, 0)
 		tag.AlwaysOnTop = true
 		tag.Parent = character
 
@@ -52,9 +88,9 @@ local function createESP(player)
 		label.Size = UDim2.new(1, 0, 1, 0)
 		label.BackgroundTransparency = 1
 		label.TextColor3 = ESPColor
-		label.TextStrokeTransparency = 0.5
+		label.TextStrokeTransparency = 0.4
 		label.TextScaled = true
-		label.Font = Enum.Font.SourceSans
+		label.Font = Enum.Font.GothamSemibold
 		label.Text = player.Name
 
 		RunService.RenderStepped:Connect(function()
@@ -94,33 +130,30 @@ fovGui.ResetOnSpawn = false
 fovGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 fovGui.Parent = PlayerGui
 
-local fovLabel = Instance.new("TextLabel")
-fovLabel.Size = UDim2.new(0, 140, 0, 30)
-fovLabel.Position = UDim2.new(0, 20, 0, 70)
-fovLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-fovLabel.TextColor3 = Color3.new(1, 1, 1)
-fovLabel.Text = "FOV Radius: " .. fovRadius
-fovLabel.Font = Enum.Font.SourceSansBold
-fovLabel.TextScaled = true
-fovLabel.Parent = fovGui
+local toggleFOVButton = createButton(fovGui, "ToggleFOVButton", "👁️ เปิด FOV", 75)
 
-local fovInput = Instance.new("TextBox")
-fovInput.Size = UDim2.new(0, 140, 0, 30)
-fovInput.Position = UDim2.new(0, 20, 0, 110)
-fovInput.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-fovInput.TextColor3 = Color3.new(1, 1, 1)
-fovInput.Text = tostring(fovRadius)
-fovInput.Font = Enum.Font.SourceSansBold
-fovInput.TextScaled = true
-fovInput.ClearTextOnFocus = false
-fovInput.Parent = fovGui
+local fovLabel = createLabel(fovGui, "FOV Radius: " .. fovRadius, 125)
+local fovInput = createTextbox(fovGui, fovRadius, 165)
+
+toggleFOVButton.MouseButton1Click:Connect(function()
+	fovCircle.Visible = not fovCircle.Visible
+	toggleFOVButton.Text = fovCircle.Visible and "❌ ปิด FOV" or "👁️ เปิด FOV"
+end)
 
 fovInput.FocusLost:Connect(function(enterPressed)
 	if enterPressed then
 		local val = tonumber(fovInput.Text)
 		if val and val >= 0 and val <= 500 then
 			fovRadius = val
+			if fovCircle then
+				fovCircle:Remove()
+			end
+			fovCircle = Drawing.new("Circle")
+			fovCircle.Color = Color3.new(0, 1, 0)
+			fovCircle.Thickness = 2
+			fovCircle.Filled = false
 			fovCircle.Radius = fovRadius
+			fovCircle.Visible = toggleFOVButton.Text == "❌ ปิด FOV"
 			fovLabel.Text = "FOV Radius: " .. fovRadius
 		else
 			fovInput.Text = tostring(fovRadius)
@@ -131,15 +164,12 @@ end)
 RunService.RenderStepped:Connect(function()
 	local viewportSize = Camera.ViewportSize
 	fovCircle.Position = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
-	fovCircle.Visible = getgenv().AimbotEnabled -- แสดงเฉพาะเวลาที่เปิด Aimbot
 	fovCircle.Radius = fovRadius
 end)
 
 -- ====== AIMBOT ======
 getgenv().AimbotEnabled = false
-
 local aimPart = "Head"
-local aimParts = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso"}
 
 local aimbotGui = Instance.new("ScreenGui")
 aimbotGui.Name = "Aimbot_UI"
@@ -147,72 +177,7 @@ aimbotGui.ResetOnSpawn = false
 aimbotGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 aimbotGui.Parent = PlayerGui
 
-local toggleAimbotButton = Instance.new("TextButton")
-toggleAimbotButton.Name = "ToggleAimbotButton"
-toggleAimbotButton.Size = UDim2.new(0, 130, 0, 40)
-toggleAimbotButton.Position = UDim2.new(0, 20, 0, 150)
-toggleAimbotButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-toggleAimbotButton.TextColor3 = Color3.new(1, 1, 1)
-toggleAimbotButton.Font = Enum.Font.SourceSansBold
-toggleAimbotButton.TextScaled = true
-toggleAimbotButton.Text = "🎯 เปิด Aimbot"
-toggleAimbotButton.Parent = aimbotGui
-
-local aimPartDropdown = Instance.new("TextButton")
-aimPartDropdown.Name = "AimPartDropdown"
-aimPartDropdown.Size = UDim2.new(0, 130, 0, 40)
-aimPartDropdown.Position = UDim2.new(0, 20, 0, 200)
-aimPartDropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-aimPartDropdown.TextColor3 = Color3.new(1, 1, 1)
-aimPartDropdown.Font = Enum.Font.SourceSansBold
-aimPartDropdown.TextScaled = true
-aimPartDropdown.Text = "Aim Part: " .. aimPart
-aimPartDropdown.Parent = aimbotGui
-
-local dropdownOpen = false
-local dropdownFrame = Instance.new("Frame")
-dropdownFrame.Size = UDim2.new(0, 130, 0, 0)
-dropdownFrame.Position = UDim2.new(0, 20, 0, 240)
-dropdownFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-dropdownFrame.ClipsDescendants = true
-dropdownFrame.Parent = aimbotGui
-
-local function closeDropdown()
-	dropdownOpen = false
-	dropdownFrame:TweenSize(UDim2.new(0, 130, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
-end
-
-local function openDropdown()
-	dropdownOpen = true
-	dropdownFrame:TweenSize(UDim2.new(0, 130, 0, #aimParts * 35), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
-end
-
-aimPartDropdown.MouseButton1Click:Connect(function()
-	if dropdownOpen then
-		closeDropdown()
-	else
-		openDropdown()
-	end
-end)
-
-for i, part in ipairs(aimParts) do
-	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, 0, 0, 35)
-	btn.Position = UDim2.new(0, 0, 0, (i-1)*35)
-	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.Font = Enum.Font.SourceSans
-	btn.TextScaled = true
-	btn.Text = part
-	btn.Parent = dropdownFrame
-
-	btn.MouseButton1Click:Connect(function()
-		aimPart = part
-		aimPartDropdown.Text = "Aim Part: " .. aimPart
-		closeDropdown()
-	end)
-end
-
+local toggleAimbotButton = createButton(aimbotGui, "ToggleAimbotButton", "🎯 เปิด Aimbot", 210)
 toggleAimbotButton.MouseButton1Click:Connect(function()
 	getgenv().AimbotEnabled = not getgenv().AimbotEnabled
 	toggleAimbotButton.Text = getgenv().AimbotEnabled and "❌ ปิด Aimbot" or "🎯 เปิด Aimbot"
@@ -246,3 +211,4 @@ RunService.RenderStepped:Connect(function()
 		end
 	end
 end)
+

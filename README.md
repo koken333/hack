@@ -1,4 +1,4 @@
-ulocal Players = game:GetService("Players")
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
@@ -82,13 +82,6 @@ end
 for _, p in pairs(Players:GetPlayers()) do
     setupESP(p)
 end
-Players.PlayerAdded:Connect(setupESP) 
+Players.PlayerAdded:Connect(setupESP)
 
-    void SmoothAimAt(Vector3 targetPos)
-    {
-        Vector3 dirToTarget = targetPos - playerCam.transform.position;
-        Quaternion targetRot = Quaternion.LookRotation(dirToTarget);
-        playerCam.transform.rotation = Quaternion.Slerp(playerCam.transform.rotation, targetRot, Time.deltaTime * 10f);
-    }
-}
 

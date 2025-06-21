@@ -1,14 +1,11 @@
-
+-- โหลด Kavo UI
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local RunService = game:GetService("RunService")
 
--- โหลด Kavo UI
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("โก๋เคน333", "DarkTheme")
-local Tab = Window:NewTab("Players")
-local Section = Tab:NewSection("Teleport")
 
 -- ปุ่มลอยเรียก UI กลับ (สำหรับมือถือ)
 local FloatGui = Instance.new("ScreenGui", PlayerGui)
@@ -44,169 +41,158 @@ OpenUIButton.MouseButton1Click:Connect(function()
 	OpenUIButton.Visible = false
 end)
 
--------------------- Teleport --------------------
+-----------------------------------------
+-- Tab 1: Teleport
+local TeleportTab = Window:NewTab("Teleport")
+local TeleportSection = TeleportTab:NewSection("Player Teleport")
+
 local players = {}
-local Select
+local selectedPlayer
 
 local function refreshPlayerList()
-    table.clear(players)
-    for _, v in ipairs(Players:GetPlayers()) do
-        table.insert(players, v.Name)
-    end
-    -- สร้าง dropdown ใหม่เมื่อรีเฟรช เพื่ออัพเดตข้อมูล
-    Section:NewDropdown("Select Player", " ", players, function(text)
-        Select = text
-    end)
+	table.clear(players)
+	for _, v in ipairs(Players:GetPlayers()) do
+		table.insert(players, v.Name)
+	end
 end
 
 refreshPlayerList()
 
-Section:NewButton("Refresh", " ", refreshPlayerList)
-
-Section:NewButton("Teleport", " ", function()
-    local target = Players:FindFirstChild(Select)
-    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
-    end
+TeleportSection:NewDropdown("Select Player", "Choose a player", players, function(text)
+	selectedPlayer = text
 end)
 
--------------------- ESP --------------------
-local ESPSection = Tab:NewSection("ESP")
+TeleportSection:NewButton("Refresh Player List", "Update player list", function()
+	refreshPlayerList()
+end)
+
+TeleportSection:NewButton("Teleport", "Teleport to selected player", function()
+	local target = Players:FindFirstChild(selectedPlayer)
+	if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+		LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+-----------------------------------------
+-- Tab 2: ESP
+local ESPTab = Window:NewTab("ESP")
+local ESPSection = ESPTab:NewSection("ESP Settings")
+
 getgenv().ESPEnabled = false
 local ESPColor = Color3.fromRGB(0, 255, 0)
 
-ESPSection:NewToggle("Enable ESP", "Toggle ESP", function(state)
-    getgenv().ESPEnabled = state
+ESPSection:NewToggle("Enable ESP", "Toggle ESP on/off", function(state)
+	getgenv().ESPEnabled = state
 end)
 
-local ESPConnections = {} -- เก็บ event connections ของแต่ละ player เพื่อเลิกเชื่อมต่อถ้าจำเป็น
-
 local function setupESP(player)
-    if player == LocalPlayer then return end
+	if player == LocalPlayer then return end
 
-    -- ถ้ามี connection เดิม ให้ตัดทิ้งก่อน (ป้องกันซ้ำ)
-    if ESPConnections[player] then
-        for _, conn in pairs(ESPConnections[player]) do
-            conn:Disconnect()
-        end
-    end
-    ESPConnections[player] = {}
+	local function onChar(char)
+		char:WaitForChild("Head")
+		if char:FindFirstChild("ESP_Tag") then return end
 
-    local function onChar(char)
-        char:WaitForChild("Head")
-        if char:FindFirstChild("ESP_Tag") then return end
+		local tag = Instance.new("BillboardGui", char)
+		tag.Name = "ESP_Tag"
+		tag.Adornee = char.Head
+		tag.Size = UDim2.new(0, 100, 0, 20)
+		tag.StudsOffset = Vector3.new(0, 2.5, 0)
+		tag.AlwaysOnTop = true
 
-        local tag = Instance.new("BillboardGui", char)
-        tag.Name = "ESP_Tag"
-        tag.Adornee = char.Head
-        tag.Size = UDim2.new(0, 100, 0, 20)
-        tag.StudsOffset = Vector3.new(0, 2.5, 0)
-        tag.AlwaysOnTop = true
+		local label = Instance.new("TextLabel", tag)
+		label.Size = UDim2.new(1, 0, 1, 0)
+		label.BackgroundTransparency = 1
+		label.TextColor3 = ESPColor
+		label.TextStrokeTransparency = 0.5
+		label.TextScaled = true
+		label.Font = Enum.Font.SourceSans
+		label.Text = player.Name
 
-        local label = Instance.new("TextLabel", tag)
-        label.Size = UDim2.new(1, 0, 1, 0)
-        label.BackgroundTransparency = 1
-        label.TextColor3 = ESPColor
-        label.TextStrokeTransparency = 0.5
-        label.TextScaled = true
-        label.Font = Enum.Font.SourceSans
-        label.Text = player.Name
+		local hl = Instance.new("Highlight", char)
+		hl.Name = "ESP_Highlight"
+		hl.FillColor = ESPColor
+		hl.OutlineColor = Color3.new(1,1,1)
+		hl.FillTransparency = 0.5
+		hl.OutlineTransparency = 0
+		hl.Enabled = false
 
-        local hl = Instance.new("Highlight", char)
-        hl.Name = "ESP_Highlight"
-        hl.FillColor = ESPColor
-        hl.OutlineColor = Color3.new(1, 1, 1)
-        hl.FillTransparency = 0.5
-        hl.OutlineTransparency = 0
-        hl.Enabled = false
+		RunService.RenderStepped:Connect(function()
+			if getgenv().ESPEnabled and char.Parent and char:FindFirstChild("HumanoidRootPart")
+			   and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+				local dist = math.floor((char.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
+				label.Text = player.Name .. " [" .. dist .. "m]"
+				tag.Enabled = true
+				hl.Enabled = true
+			else
+				tag.Enabled = false
+				hl.Enabled = false
+			end
+		end)
+	end
 
-        local conn = RunService.RenderStepped:Connect(function()
-            if getgenv().ESPEnabled and char.Parent and char:FindFirstChild("HumanoidRootPart")
-               and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                local dist = math.floor((char.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
-                label.Text = player.Name .. " [" .. dist .. "m]"
-                tag.Enabled = true
-                hl.Enabled = true
-            else
-                tag.Enabled = false
-                hl.Enabled = false
-            end
-        end)
-
-        table.insert(ESPConnections[player], conn)
-    end
-
-    player.CharacterAdded:Connect(onChar)
-    if player.Character then onChar(player.Character) end
+	player.CharacterAdded:Connect(onChar)
+	if player.Character then onChar(player.Character) end
 end
 
-for _, p in ipairs(Players:GetPlayers()) do setupESP(p) end
+for _, p in ipairs(Players:GetPlayers()) do
+	setupESP(p)
+end
 Players.PlayerAdded:Connect(setupESP)
 
--------------------- Aimbot --------------------
-local AimbotSection = Tab:NewSection("Aimbot")
+-----------------------------------------
+-- Tab 3: Aimbot
+local AimbotTab = Window:NewTab("Aimbot")
+local AimbotSection = AimbotTab:NewSection("Aimbot Settings")
+
 getgenv().AimbotEnabled = false
 local aimPart = "Head"
+local fovRadius = 50
 
-AimbotSection:NewToggle("Enable Aimbot", "Lock aim to nearest", function(state)
+AimbotSection:NewToggle("Enable Aimbot", "Toggle aimbot on/off", function(state)
 	getgenv().AimbotEnabled = state
 end)
 
-local function getClosestTarget()
-	local cam = workspace.CurrentCamera
-	local closest, shortest = nil, math.huge
+local fovCircle = Drawing.new("Circle")
+fovCircle.Radius = fovRadius
+fovCircle.Color = Color3.new(1, 0, 0)
+fovCircle.Thickness = 1
+fovCircle.Filled = false
+fovCircle.Visible = false
 
-	for _, p in pairs(Players:GetPlayers()) do
-		if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild(aimPart) then
-			local pos = p.Character[aimPart].Position
-			local dist = (cam.CFrame.Position - pos).Magnitude
-			if dist < shortest then
-				shortest = dist
-				closest = p
-			end
-		end
-	end
-
-	return closest
-end
-
--- FOV Setup
-local fovRadius = 100
-local FOVCircle = Drawing.new("Circle")
-FOVCircle.Transparency = 0.5
-FOVCircle.Thickness = 1
-FOVCircle.Color = Color3.fromRGB(0, 255, 0)
-FOVCircle.Filled = false
-FOVCircle.Radius = fovRadius
-FOVCircle.Visible = false
-
--- UI สร้าง slider ปรับ FOV
-AimbotSection:NewSlider("FOV Size", "ปรับขนาด FOV", 300, 10, function(value)
+AimbotSection:NewSlider("FOV Radius", "Adjust Aimbot FOV size", 300, 10, fovRadius, function(value)
 	fovRadius = value
-	FOVCircle.Radius = fovRadius
+	fovCircle.Radius = fovRadius
 end)
 
 RunService.RenderStepped:Connect(function()
 	local cam = workspace.CurrentCamera
-	local mouse = game:GetService("UserInputService"):GetMouseLocation()
-	local viewportSize = workspace.CurrentCamera.ViewportSize
-
-	-- อัปเดตตำแหน่งวงกลม FOV
-	FOVCircle.Position = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
-	FOVCircle.Visible = getgenv().AimbotEnabled
+	local center = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+	fovCircle.Position = center
+	fovCircle.Visible = getgenv().AimbotEnabled
 
 	if getgenv().AimbotEnabled then
-		local target = getClosestTarget()
-		if target and target.Character and target.Character:FindFirstChild(aimPart) then
-			local targetPos, onScreen = cam:WorldToViewportPoint(target.Character[aimPart].Position)
-			local mousePos = Vector2.new(mouse.X, mouse.Y)
-			local targetVector = Vector2.new(targetPos.X, targetPos.Y)
-			local distanceFromMouse = (targetVector - mousePos).Magnitude
+		local closest, shortest = nil, math.huge
 
-			if onScreen and distanceFromMouse <= fovRadius then
-				cam.CFrame = CFrame.new(cam.CFrame.Position, target.Character[aimPart].Position)
+		for _, p in pairs(Players:GetPlayers()) do
+			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild(aimPart) then
+				local pos, onScreen = cam:WorldToViewportPoint(p.Character[aimPart].Position)
+				if onScreen then
+					local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude
+					if dist < shortest and dist < fovRadius then
+						shortest = dist
+						closest = p
+					end
+				end
 			end
+		end
+
+		if closest and closest.Character and closest.Character:FindFirstChild(aimPart) then
+			cam.CFrame = CFrame.new(cam.CFrame.Position, closest.Character[aimPart].Position)
 		end
 	end
 end)
+
+
+
+
 

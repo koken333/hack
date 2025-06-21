@@ -35,7 +35,7 @@ end)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
-local ESPEnabled = true -- เปิดอัตโนมัติ ถ้าต้องการ toggle ให้สร้างปุ่มเปิด-ปิดเพิ่มเติม
+local ESPEnabled = true 
 local ESPColor = Color3.fromRGB(0, 255, 0)
 
 local function setupESP(player)

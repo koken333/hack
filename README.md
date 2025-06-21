@@ -6,21 +6,28 @@ local Camera = workspace.CurrentCamera
 
 -- ฟังก์ชันสร้างปุ่มสวยๆ
 local function createButton(parent, name, text, posY)
-	local btn = Instance.new("TextButton")
-	btn.Name = name
-	btn.Size = UDim2.new(0, 140, 0, 45)
-	btn.Position = UDim2.new(0, 20, 0, posY)
-	btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-	btn.BorderSizePixel = 0
-	btn.AutoButtonColor = true
-	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.Font = Enum.Font.GothamSemibold
-	btn.TextScaled = true
-	btn.Text = text
-	btn.Parent = parent
-	return btn
-end
+	local cam = Camera
+	local closest, shortest = nil, math.huge
 
+	for _, p in pairs(Players:GetPlayers()) do
+		if p ~= LocalPlayer 
+			and p.Character 
+			and p.Character:FindFirstChild(aimPart) 
+			and not LocalPlayer:IsFriendsWith(p.UserId) then
+
+			local pos, onScreen = cam:WorldToViewportPoint(p.Character[aimPart].Position)
+			if onScreen then
+				local distToCenter = (Vector2.new(pos.X, pos.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
+				if distToCenter < shortest and distToCenter < fovRadius then
+					shortest = distToCenter
+					closest = p
+				end
+			end
+		end
+	end
+
+	return closest
+end
 local function createLabel(parent, text, posY)
 	local lbl = Instance.new("TextLabel")
 	lbl.Size = UDim2.new(0, 150, 0, 30)

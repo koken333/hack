@@ -1,4 +1,4 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua "))()
 local Window = Library.CreateLib("SHARK X HUB", "DarkTheme")
 local Tab = Window:NewTab("Players")
 -- Teleport Section

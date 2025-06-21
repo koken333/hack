@@ -1,7 +1,18 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua "))()
 local Window = Library.CreateLib("SHARK X HUB", "DarkTheme")
 local Tab = Window:NewTab("Players")
--- Teleport Section
+
+local CloseButton = Window.MainFrame.MainHeader:FindFirstChild("close")
+if CloseButton and CloseButton:IsA("ImageButton") then
+    -- ย้ายหรือปรับตำแหน่งให้ดูเด่นเป็นโลโก้
+    CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    CloseButton.Position = UDim2.new(0.95, 0, 0.05, 0)
+    -- เว้นว่างไว้เป็นโลโก้ หรือเปลี่ยนให้คลิกแล้วปิด UI
+    CloseButton.MouseButton1Click:Connect(function()
+        Library:ToggleUI()
+    end)
+end
+
 local TPSection = Tab:NewSection("Teleport")
 
 local players = {}

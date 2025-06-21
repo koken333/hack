@@ -207,3 +207,32 @@ RunService.RenderStepped:Connect(function()
 		end
 	end
 end)
+-- ====== TOGGLE UI VISIBILITY (ลากได้) ======
+local mainToggleGui = Instance.new("ScreenGui", PlayerGui)
+mainToggleGui.Name = "MainToggle_UI"
+mainToggleGui.ResetOnSpawn = false
+mainToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local isMinimized = false
+local toggleMainButton = Instance.new("TextButton")
+toggleMainButton.Size = UDim2.new(0, 150, 0, 40)
+toggleMainButton.Position = UDim2.new(0, 180, 0, 20)
+toggleMainButton.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+toggleMainButton.TextColor3 = Color3.new(1, 1, 1)
+toggleMainButton.Font = Enum.Font.GothamBold
+toggleMainButton.TextScaled = true
+toggleMainButton.Text = "🔽 พับเมนู"
+toggleMainButton.Parent = mainToggleGui
+toggleMainButton.Active = true
+toggleMainButton.Draggable = true -- เปิดให้ลากได้
+
+-- คลิกเพื่อพับ/ขยาย
+toggleMainButton.MouseButton1Click:Connect(function()
+	isMinimized = not isMinimized
+	toggleMainButton.Text = isMinimized and "🔼 แสดงเมนู" or "🔽 พับเมนู"
+
+	-- ซ่อน/แสดง GUI หลัก
+	espGui.Enabled = not isMinimized
+	fovGui.Enabled = not isMinimized
+	aimbotGui.Enabled = not isMinimized
+end)

@@ -1,8 +1,10 @@
--- โหลด Kavo UI
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local RunService = game:GetService("RunService")
 
+-- โหลด Kavo UI
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("โก๋เคน333", "DarkTheme")
 local Tab = Window:NewTab("Players")
@@ -51,13 +53,13 @@ local function refreshPlayerList()
     for _, v in ipairs(Players:GetPlayers()) do
         table.insert(players, v.Name)
     end
+    -- สร้าง dropdown ใหม่เมื่อรีเฟรช เพื่ออัพเดตข้อมูล
+    Section:NewDropdown("Select Player", " ", players, function(text)
+        Select = text
+    end)
 end
 
 refreshPlayerList()
-
-Section:NewDropdown("Select Player", " ", players, function(text)
-    Select = text
-end)
 
 Section:NewButton("Refresh", " ", refreshPlayerList)
 
@@ -72,14 +74,23 @@ end)
 local ESPSection = Tab:NewSection("ESP")
 getgenv().ESPEnabled = false
 local ESPColor = Color3.fromRGB(0, 255, 0)
-local RunService = game:GetService("RunService")
 
 ESPSection:NewToggle("Enable ESP", "Toggle ESP", function(state)
     getgenv().ESPEnabled = state
 end)
 
+local ESPConnections = {} -- เก็บ event connections ของแต่ละ player เพื่อเลิกเชื่อมต่อถ้าจำเป็น
+
 local function setupESP(player)
     if player == LocalPlayer then return end
+
+    -- ถ้ามี connection เดิม ให้ตัดทิ้งก่อน (ป้องกันซ้ำ)
+    if ESPConnections[player] then
+        for _, conn in pairs(ESPConnections[player]) do
+            conn:Disconnect()
+        end
+    end
+    ESPConnections[player] = {}
 
     local function onChar(char)
         char:WaitForChild("Head")
@@ -104,12 +115,12 @@ local function setupESP(player)
         local hl = Instance.new("Highlight", char)
         hl.Name = "ESP_Highlight"
         hl.FillColor = ESPColor
-        hl.OutlineColor = Color3.new(1,1,1)
+        hl.OutlineColor = Color3.new(1, 1, 1)
         hl.FillTransparency = 0.5
         hl.OutlineTransparency = 0
         hl.Enabled = false
 
-        RunService.RenderStepped:Connect(function()
+        local conn = RunService.RenderStepped:Connect(function()
             if getgenv().ESPEnabled and char.Parent and char:FindFirstChild("HumanoidRootPart")
                and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 local dist = math.floor((char.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
@@ -121,6 +132,8 @@ local function setupESP(player)
                 hl.Enabled = false
             end
         end)
+
+        table.insert(ESPConnections[player], conn)
     end
 
     player.CharacterAdded:Connect(onChar)
@@ -157,12 +170,43 @@ local function getClosestTarget()
 	return closest
 end
 
+-- FOV Setup
+local fovRadius = 100
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Transparency = 0.5
+FOVCircle.Thickness = 1
+FOVCircle.Color = Color3.fromRGB(0, 255, 0)
+FOVCircle.Filled = false
+FOVCircle.Radius = fovRadius
+FOVCircle.Visible = false
+
+-- UI สร้าง slider ปรับ FOV
+AimbotSection:NewSlider("FOV Size", "ปรับขนาด FOV", 300, 10, function(value)
+	fovRadius = value
+	FOVCircle.Radius = fovRadius
+end)
+
 RunService.RenderStepped:Connect(function()
+	local cam = workspace.CurrentCamera
+	local mouse = game:GetService("UserInputService"):GetMouseLocation()
+	local viewportSize = workspace.CurrentCamera.ViewportSize
+
+	-- อัปเดตตำแหน่งวงกลม FOV
+	FOVCircle.Position = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+	FOVCircle.Visible = getgenv().AimbotEnabled
+
 	if getgenv().AimbotEnabled then
-		local cam = workspace.CurrentCamera
 		local target = getClosestTarget()
 		if target and target.Character and target.Character:FindFirstChild(aimPart) then
-			cam.CFrame = CFrame.new(cam.CFrame.Position, target.Character[aimPart].Position)
+			local targetPos, onScreen = cam:WorldToViewportPoint(target.Character[aimPart].Position)
+			local mousePos = Vector2.new(mouse.X, mouse.Y)
+			local targetVector = Vector2.new(targetPos.X, targetPos.Y)
+			local distanceFromMouse = (targetVector - mousePos).Magnitude
+
+			if onScreen and distanceFromMouse <= fovRadius then
+				cam.CFrame = CFrame.new(cam.CFrame.Position, target.Character[aimPart].Position)
+			end
 		end
 	end
 end)
+

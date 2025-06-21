@@ -131,13 +131,15 @@ end)
 RunService.RenderStepped:Connect(function()
 	local viewportSize = Camera.ViewportSize
 	fovCircle.Position = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
-	fovCircle.Visible = getgenv().ESPEnabled -- แสดงตอนเปิด ESP เท่านั้น
+	fovCircle.Visible = getgenv().AimbotEnabled -- แสดงเฉพาะเวลาที่เปิด Aimbot
 	fovCircle.Radius = fovRadius
 end)
 
 -- ====== AIMBOT ======
 getgenv().AimbotEnabled = false
+
 local aimPart = "Head"
+local aimParts = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso"}
 
 local aimbotGui = Instance.new("ScreenGui")
 aimbotGui.Name = "Aimbot_UI"
@@ -155,6 +157,61 @@ toggleAimbotButton.Font = Enum.Font.SourceSansBold
 toggleAimbotButton.TextScaled = true
 toggleAimbotButton.Text = "🎯 เปิด Aimbot"
 toggleAimbotButton.Parent = aimbotGui
+
+local aimPartDropdown = Instance.new("TextButton")
+aimPartDropdown.Name = "AimPartDropdown"
+aimPartDropdown.Size = UDim2.new(0, 130, 0, 40)
+aimPartDropdown.Position = UDim2.new(0, 20, 0, 200)
+aimPartDropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+aimPartDropdown.TextColor3 = Color3.new(1, 1, 1)
+aimPartDropdown.Font = Enum.Font.SourceSansBold
+aimPartDropdown.TextScaled = true
+aimPartDropdown.Text = "Aim Part: " .. aimPart
+aimPartDropdown.Parent = aimbotGui
+
+local dropdownOpen = false
+local dropdownFrame = Instance.new("Frame")
+dropdownFrame.Size = UDim2.new(0, 130, 0, 0)
+dropdownFrame.Position = UDim2.new(0, 20, 0, 240)
+dropdownFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+dropdownFrame.ClipsDescendants = true
+dropdownFrame.Parent = aimbotGui
+
+local function closeDropdown()
+	dropdownOpen = false
+	dropdownFrame:TweenSize(UDim2.new(0, 130, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+end
+
+local function openDropdown()
+	dropdownOpen = true
+	dropdownFrame:TweenSize(UDim2.new(0, 130, 0, #aimParts * 35), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+end
+
+aimPartDropdown.MouseButton1Click:Connect(function()
+	if dropdownOpen then
+		closeDropdown()
+	else
+		openDropdown()
+	end
+end)
+
+for i, part in ipairs(aimParts) do
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, 0, 0, 35)
+	btn.Position = UDim2.new(0, 0, 0, (i-1)*35)
+	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Font = Enum.Font.SourceSans
+	btn.TextScaled = true
+	btn.Text = part
+	btn.Parent = dropdownFrame
+
+	btn.MouseButton1Click:Connect(function()
+		aimPart = part
+		aimPartDropdown.Text = "Aim Part: " .. aimPart
+		closeDropdown()
+	end)
+end
 
 toggleAimbotButton.MouseButton1Click:Connect(function()
 	getgenv().AimbotEnabled = not getgenv().AimbotEnabled
@@ -189,9 +246,3 @@ RunService.RenderStepped:Connect(function()
 		end
 	end
 end)
-
-
-
-
-
-

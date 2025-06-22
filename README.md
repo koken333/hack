@@ -1,47 +1,43 @@
--- LocalScript for item/NPC ESP with colored labels
 local Workspace = game:GetService("Workspace")
-local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
 
--- ตารางกำหนดชื่อที่ต้องการ + สี
+-- ชื่อ NPC ที่เราจะจับ
 local colorConfig = {
     Mythic        = Color3.fromRGB(255, 0, 0),
     ["Brainrot God"] = {rainbow = true},
     Secert        = Color3.fromRGB(0, 0, 0),
 }
 
--- สร้าง BillboardGui และ Label ให้กับวัตถุตรงเงื่อนไข
-local function addLabel(obj)
-    local name = obj.Name
-    if not colorConfig[name] then return end
-    if obj:FindFirstChild("ESPLabel") then return end
+-- ตรวจโครงสร้างว่าคือ NPC ใช่มั้ย
+local function isTargetNPC(obj)
+    return obj:IsA("Model") and colorConfig[obj.Name]
+end
 
-    local root = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+local function addLabel(npc)
+    if npc:FindFirstChild("ESPLabel") then return end
+    local root = npc:FindFirstChild("HumanoidRootPart") or npc:FindFirstChildWhichIsA("BasePart")
     if not root then return end
 
-    local gui = Instance.new("BillboardGui", obj)
+    local gui = Instance.new("BillboardGui")
     gui.Name = "ESPLabel"
+    gui.Parent = root
     gui.Adornee = root
-    gui.Size = UDim2.new(0, 120, 0, 30)
-    gui.StudsOffset = Vector3.new(0, 2.5, 0)
+    gui.Size = UDim2.new(0, 200, 0, 50)
+    gui.StudsOffset = Vector3.new(0, 3, 0)
     gui.AlwaysOnTop = true
 
     local label = Instance.new("TextLabel", gui)
     label.Size = UDim2.new(1, 0, 1, 0)
     label.BackgroundTransparency = 1
-    label.Text = name
-    label.Font = Enum.Font.GothamBold
+    label.Text = npc.Name
     label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
     label.TextStrokeTransparency = 0.4
 
-    local cfg = colorConfig[name]
+    local cfg = colorConfig[npc.Name]
     if cfg.rainbow then
-        -- ไล่เฉดสีรุ้ง
-        label.TextColor3 = Color3.new(1, 0, 0)
-        -- Tween ไล่สีเรนโบว์
         coroutine.wrap(function()
-            while label.Parent and cfg.rainbow do
+            while gui.Parent do
                 for hue = 0, 1, 0.01 do
                     label.TextColor3 = Color3.fromHSV(hue, 1, 1)
                     RunService.RenderStepped:Wait()
@@ -53,21 +49,29 @@ local function addLabel(obj)
     end
 end
 
--- ลบ label เมื่อตัวหาย
-local function removeLabel(obj)
-    local gui = obj:FindFirstChild("ESPLabel")
-    if gui then gui:Destroy() end
+local function removeLabel(npc)
+    local root = npc:FindFirstChild("HumanoidRootPart") or npc:FindFirstChildWhichIsA("BasePart")
+    if root then
+        local gui = root:FindFirstChild("ESPLabel")
+        if gui then gui:Destroy() end
+    end
 end
 
--- ตรวจจับวัตถุที่ spawn หรือหาย
+-- ตรวจจับ NPC spawn/remove
 Workspace.DescendantAdded:Connect(function(obj)
-    addLabel(obj)
+    local npc = obj:FindFirstAncestorOfClass("Model")
+    if npc and isTargetNPC(npc) then
+        addLabel(npc)
+    end
 end)
 Workspace.DescendantRemoving:Connect(function(obj)
-    removeLabel(obj)
+    local npc = obj:FindFirstAncestorOfClass("Model")
+    if npc and colorConfig[npc.Name] then
+        removeLabel(npc)
+    end
 end)
 
--- เรียกเริ่มต้น
-for _, obj in ipairs(Workspace:GetDescendants()) do
-    addLabel(obj)
-end
+-- เริ่มต้นสแกนตอนโค้ดโหลด
+for _, npc in ipairs(Workspace:GetDescendants()) do
+    if isTargetNPC(npc) then addLabel(npc) end
+en

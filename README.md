@@ -1,62 +1,73 @@
--- Item ESP สำหรับ KRNL / Executor
-local RunService = game:GetService("RunService")
+-- LocalScript for item/NPC ESP with colored labels
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
--- ฟิลเตอร์เพื่อเลือกไอเท็ม เช่น ชื่อคลาส หรือโฟลเดอร์
-local function isItem(obj)
-    return obj:IsA("Part") or obj:IsA("MeshPart") or obj:IsA("UnionOperation")
-end
+-- ตารางกำหนดชื่อที่ต้องการ + สี
+local colorConfig = {
+    Mythic        = Color3.fromRGB(255, 0, 0),
+    ["Brainrot God"] = {rainbow = true},
+    Secert        = Color3.fromRGB(0, 0, 0),
+}
 
--- สร้าง label ให้ไอเท็ม
-local function addLabel(item)
-    if item:FindFirstChild("ESPLabel") then return end
+-- สร้าง BillboardGui และ Label ให้กับวัตถุตรงเงื่อนไข
+local function addLabel(obj)
+    local name = obj.Name
+    if not colorConfig[name] then return end
+    if obj:FindFirstChild("ESPLabel") then return end
 
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name = "ESPLabel"
-    billboard.Adornee = item
-    billboard.Size = UDim2.new(0, 100, 0, 30)
-    billboard.AlwaysOnTop = true
-    billboard.StudsOffset = Vector3.new(0, 2, 0)
-    billboard.Parent = item
+    local root = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+    if not root then return end
 
-    local label = Instance.new("TextLabel", billboard)
-    label.BackgroundTransparency = 1
+    local gui = Instance.new("BillboardGui", obj)
+    gui.Name = "ESPLabel"
+    gui.Adornee = root
+    gui.Size = UDim2.new(0, 120, 0, 30)
+    gui.StudsOffset = Vector3.new(0, 2.5, 0)
+    gui.AlwaysOnTop = true
+
+    local label = Instance.new("TextLabel", gui)
     label.Size = UDim2.new(1, 0, 1, 0)
-    label.Text = item.Name
-    label.TextColor3 = Color3.new(1, 0.5, 1)
-    label.TextStrokeTransparency = 0.5
-    label.TextScaled = true
+    label.BackgroundTransparency = 1
+    label.Text = name
     label.Font = Enum.Font.GothamBold
-end
+    label.TextScaled = true
+    label.TextStrokeTransparency = 0.4
 
--- ลบ label เมื่อไอเท็มหาย
-local function removeLabel(item)
-    local billboard = item:FindFirstChild("ESPLabel")
-    if billboard then billboard:Destroy() end
-end
-
--- ตรวจจับและทำ ESP เมื่อมีวัตถุใน Workspace แก้ไข
-local function scanItems()
-    for _, obj in ipairs(Workspace:GetDescendants()) do
-        if isItem(obj) then
-            addLabel(obj)
-        end
+    local cfg = colorConfig[name]
+    if cfg.rainbow then
+        -- ไล่เฉดสีรุ้ง
+        label.TextColor3 = Color3.new(1, 0, 0)
+        -- Tween ไล่สีเรนโบว์
+        coroutine.wrap(function()
+            while label.Parent and cfg.rainbow do
+                for hue = 0, 1, 0.01 do
+                    label.TextColor3 = Color3.fromHSV(hue, 1, 1)
+                    RunService.RenderStepped:Wait()
+                end
+            end
+        end)()
+    else
+        label.TextColor3 = cfg
     end
 end
 
--- ตรวจจับเมื่อตัวใหม่ spawn / ถูกลบ
+-- ลบ label เมื่อตัวหาย
+local function removeLabel(obj)
+    local gui = obj:FindFirstChild("ESPLabel")
+    if gui then gui:Destroy() end
+end
+
+-- ตรวจจับวัตถุที่ spawn หรือหาย
 Workspace.DescendantAdded:Connect(function(obj)
-    if isItem(obj) then
-        addLabel(obj)
-    end
+    addLabel(obj)
 end)
 Workspace.DescendantRemoving:Connect(function(obj)
-    if isItem(obj) then
-        removeLabel(obj)
-    end
+    removeLabel(obj)
 end)
 
--- เรียกสแกนตอนเปิด script
-scanItems()
+-- เรียกเริ่มต้น
+for _, obj in ipairs(Workspace:GetDescendants()) do
+    addLabel(obj)
+end

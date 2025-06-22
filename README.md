@@ -1,18 +1,23 @@
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 
--- ชื่อ NPC ที่เราจะจับ
-local colorConfig = {
-    Mythic        = Color3.fromRGB(255, 0, 0),
-    ["Brainrot God"] = {rainbow = true},
-    Secert        = Color3.fromRGB(0, 0, 0),
+-- กำหนดรายชื่อ NPC ที่เกี่ยวข้องกับ Brainrot
+local targetNPCs = {
+    "Tim Cheese",
+    -- เพิ่มชื่อ NPC อื่น ๆ ที่เกี่ยวข้องที่นี่
 }
 
--- ตรวจโครงสร้างว่าคือ NPC ใช่มั้ย
-local function isTargetNPC(obj)
-    return obj:IsA("Model") and colorConfig[obj.Name]
+-- ฟังก์ชันสำหรับตรวจสอบว่า NPC เป็นหนึ่งในที่เราต้องการหรือไม่
+local function isTargetNPC(npc)
+    for _, name in ipairs(targetNPCs) do
+        if npc.Name == name then
+            return true
+        end
+    end
+    return false
 end
 
+-- ฟังก์ชันสำหรับเพิ่ม Label ให้กับ NPC
 local function addLabel(npc)
     if npc:FindFirstChild("ESPLabel") then return end
     local root = npc:FindFirstChild("HumanoidRootPart") or npc:FindFirstChildWhichIsA("BasePart")
@@ -33,45 +38,22 @@ local function addLabel(npc)
     label.TextScaled = true
     label.Font = Enum.Font.GothamBold
     label.TextStrokeTransparency = 0.4
-
-    local cfg = colorConfig[npc.Name]
-    if cfg.rainbow then
-        coroutine.wrap(function()
-            while gui.Parent do
-                for hue = 0, 1, 0.01 do
-                    label.TextColor3 = Color3.fromHSV(hue, 1, 1)
-                    RunService.RenderStepped:Wait()
-                end
-            end
-        end)()
-    else
-        label.TextColor3 = cfg
-    end
+    label.TextColor3 = Color3.fromRGB(255, 0, 0) -- สีแดงสำหรับ NPC ที่เกี่ยวข้องกับ Brainrot
 end
 
-local function removeLabel(npc)
-    local root = npc:FindFirstChild("HumanoidRootPart") or npc:FindFirstChildWhichIsA("BasePart")
-    if root then
-        local gui = root:FindFirstChild("ESPLabel")
-        if gui then gui:Destroy() end
-    end
-end
-
--- ตรวจจับ NPC spawn/remove
+-- ตรวจจับ NPC ที่ถูกเพิ่มเข้ามาใน Workspace
 Workspace.DescendantAdded:Connect(function(obj)
-    local npc = obj:FindFirstAncestorOfClass("Model")
-    if npc and isTargetNPC(npc) then
-        addLabel(npc)
-    end
-end)
-Workspace.DescendantRemoving:Connect(function(obj)
-    local npc = obj:FindFirstAncestorOfClass("Model")
-    if npc and colorConfig[npc.Name] then
-        removeLabel(npc)
+    if obj:IsA("Model") and isTargetNPC(obj) then
+        addLabel(obj)
     end
 end)
 
--- เริ่มต้นสแกนตอนโค้ดโหลด
-for _, npc in ipairs(Workspace:GetDescendants()) do
-    if isTargetNPC(npc) then addLabel(npc) end
-en
+-- ตรวจจับ NPC ที่ถูกลบออกจาก Workspace
+Workspace.DescendantRemoving:Connect(function(obj)
+    if obj:IsA("Model") and isTargetNPC(obj) then
+        local gui = obj:FindFirstChild("HumanoidRootPart"):FindFirstChild("ESPLabel")
+        if gui then
+            gui:Destroy()
+        end
+    end
+end

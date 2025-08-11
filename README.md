@@ -1,11 +1,11 @@
-local gui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+local lp = game.Players.LocalPlayer
+local pg = lp:WaitForChild("PlayerGui")
 
-local function scan(obj, indent)
-    indent = indent or ""
-    print(indent .. obj.Name .. " [" .. obj.ClassName .. "]")
-    for _, child in ipairs(obj:GetChildren()) do
-        scan(child, indent .. "  ")
+pg.DescendantAdded:Connect(function(obj)
+    if obj:IsA("TextButton") or obj:IsA("ImageButton") then
+        print("New button found:", obj.Name, obj.Text or "")
+        obj.MouseButton1Click:Connect(function()
+            print("Clicked:", obj.Name)
+        end)
     end
-end
-
-scan(gui)
+end)

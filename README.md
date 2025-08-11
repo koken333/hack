@@ -1,32 +1,55 @@
+-- // KRNL Path Recorder + Replay //
+local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
 
-local points = {} -- เก็บจุดที่บันทึก
+local path = {}
 local recording = false
 
--- GUI เปิด/ปิดบันทึก
-local ScreenGui = Instance.new("ScreenGui", game.Players.LocalPlayer.PlayerGui)
-local RecordButton = Instance.new("TextButton")
-RecordButton.Size = UDim2.new(0.3, 0, 0.1, 0)
-RecordButton.Position = UDim2.new(0.35, 0, 0.85, 0)
-RecordButton.Text = "Start Recording"
-RecordButton.Parent = ScreenGui
+local function addPoint(pos)
+    table.insert(path, pos)
+    print("Point added:", pos)
+end
 
--- สลับโหมดบันทึก
-RecordButton.Activated:Connect(function()
-    recording = not recording
-    RecordButton.Text = recording and "Recording..." or "Start Recording"
-    if not recording then
-        print("บันทึกเสร็จแล้ว ✅ พิกัดทั้งหมด:")
-        for i, p in ipairs(points) do
-            print(i, ":", "Vector2.new("..p.X..", "..p.Y..")")
-        end
+local function walkPath()
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hum = char:WaitForChild("Humanoid")
+    for i, pos in ipairs(path) do
+        hum:MoveTo(pos)
+        hum.MoveToFinished:Wait()
+        wait(0.1)
+    end
+    print("Replay finished!")
+end
+
+-- บันทึกพิกัดเมื่อคลิกซ้าย
+Mouse.Button1Down:Connect(function()
+    if recording then
+        addPoint(Mouse.Hit.p)
     end
 end)
 
--- ฟังการแตะหน้าจอ
+-- ปุ่มควบคุม
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if recording and input.UserInputType == Enum.UserInputType.Touch then
-        table.insert(points, input.Position)
-        print("บันทึกจุด:", input.Position)
+    if gameProcessed then return end
+
+    if input.KeyCode == Enum.KeyCode.R then
+        recording = not recording
+        print(recording and "Recording started!" or "Recording stopped!")
+    
+    elseif input.KeyCode == Enum.KeyCode.P then
+        if #path == 0 then
+            print("No path recorded!")
+            return
+        end
+        print("Replaying path...")
+        walkPath()
+    
+    elseif input.KeyCode == Enum.KeyCode.C then
+        path = {}
+        print("Path cleared!")
     end
 end)
+
+print("Path Recorder Loaded! R = start/stop record, P = replay, C = clear")

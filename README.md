@@ -1,25 +1,24 @@
--- Roblox จุดพักใจ - Fur Elise Auto Piano
--- ใช้กับ KRNL
-
 local vim = game:GetService("VirtualInputManager")
 
--- ฟังก์ชันกดปุ่ม
 function pressKey(key, delay)
     vim:SendKeyEvent(true, Enum.KeyCode[key], false, game)
-    task.wait(0.08)
+    task.wait(0.06)  -- กดปุ่มค้างสั้นลงหน่อยให้จังหวะมันเร็วขึ้น
     vim:SendKeyEvent(false, Enum.KeyCode[key], false, game)
-    task.wait(delay or 0.08)
+    task.wait(delay or 0.06)
 end
 
--- โน้ตเพลง Fur Elise (แปลงเป็นปุ่มในเกมจุดพักใจ)
--- แค่ท่อนแรก
 local song = {
-    {"D",0.15},{"E",0.15},{"D",0.15},{"E",0.15},{"D",0.15},{"B",0.15},{"D",0.15},{"C",0.15},{"A",0.3},
-    {"A",0.15},{"C",0.15},{"E",0.15},{"A",0.3},{"B",0.15},{"E",0.15},{"G",0.15},{"B",0.3},
-    {"C",0.15},{"E",0.15},{"A",0.15},{"C",0.3},{"B",0.15},{"E",0.15},{"G",0.15},{"B",0.3}
+    {"D",0.1},{"E",0.1},{"D",0.2},
+    {"E",0.1},{"D",0.1},{"B",0.2},
+    {"D",0.1},{"C",0.1},{"A",0.2},
+    {"A",0.1},{"C",0.1},{"E",0.2},
+    {"A",0.1},{"B",0.1},{"E",0.2},
+    {"G",0.1},{"B",0.1},{"C",0.2},
+    {"E",0.1},{"A",0.1},{"C",0.2},
+    {"B",0.1},{"E",0.1},{"G",0.2},
+    {"B",0.3}
 }
 
--- วนเล่น
 while true do
     for _,note in ipairs(song) do
         pressKey(note[1], note[2])

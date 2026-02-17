@@ -1,5 +1,5 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("My Study Hub", "BloodTheme")
+local Window = Library.CreateLib("My Study Hub V4", "BloodTheme")
 
 -- SERVICE & VARIABLES
 local Players = game:GetService("Players")
@@ -8,20 +8,20 @@ local UserInputService = game:GetService("UserInputService")
 local camera = workspace.CurrentCamera
 local localPlayer = Players.LocalPlayer
 
--- Global Table สำหรับเก็บค่าคอนฟิก
+-- Global Table
 _G.MyAimbotSettings = {
     AimbotEnabled = false,
     TargetPart = "Head",
     Smoothness = 0.15,
     FOV = 120,
+    FOVVisible = true,
     ESPEnabled = true,
 }
-
 local CurrentSettings = _G.MyAimbotSettings
 
--- DRAWING FOV (วงกลม)
+-- DRAWING FOV
 local fovCircle = Drawing.new("Circle")
-fovCircle.Visible = true
+fovCircle.Visible = false
 fovCircle.Thickness = 1
 fovCircle.Radius = CurrentSettings.FOV
 fovCircle.Color = Color3.fromRGB(255, 0, 0)
@@ -29,9 +29,23 @@ fovCircle.Color = Color3.fromRGB(255, 0, 0)
 -- ESP STORAGE
 local playerESPDrawings = {}
 
--- ฟังก์ชันจัดการ ESP (เหมือนเดิม)
+-- [[ ฟังก์ชันล้างชื่อเมื่อผู้เล่นออก (แก้บั๊กชื่อค้าง) ]] --
+local function removeESP(userId)
+    if playerESPDrawings[userId] then
+        playerESPDrawings[userId].Visible = false
+        playerESPDrawings[userId]:Remove()
+        playerESPDrawings[userId] = nil
+    end
+end
+
+Players.PlayerRemoving:Connect(function(player)
+    removeESP(player.UserId)
+end)
+
+-- ฟังก์ชันจัดการ ESP
 local function updatePlayerESP(player)
     if player == localPlayer then return end
+    
     local espDrawing = playerESPDrawings[player.UserId]
     if not espDrawing then
         espDrawing = Drawing.new("Text")
@@ -89,50 +103,49 @@ end
 
 -- ====== UI SETUP ======
 local MainTab = Window:NewTab("Main")
-local AimbotSection = MainTab:NewSection("Aimbot (E = Toggle | F = Switch)")
-local ESPSection = MainTab:NewSection("ESP Settings")
+local VisualTab = Window:NewTab("Visuals")
+local SettingTab = Window:NewTab("Settings")
 
--- ปุ่ม Toggle ใน UI
-local aimbotToggleUI = AimbotSection:NewToggle("Enable Aimbot", "Locks onto targets", function(state)
-    CurrentSettings.AimbotEnabled = state
-end)
-
--- Dropdown ใน UI
-local targetDropdownUI = AimbotSection:NewDropdown("Target Part", "Select where to lock", {"Head", "HumanoidRootPart"}, function(currentOption)
-    CurrentSettings.TargetPart = currentOption
-end)
-
+local AimbotSection = MainTab:NewSection("Aimbot Control")
+AimbotSection:NewToggle("Enable Aimbot", "Locks onto targets", function(state) CurrentSettings.AimbotEnabled = state end)
 AimbotSection:NewSlider("Smoothness", "Speed", 100, 1, function(s) CurrentSettings.Smoothness = s / 100 end)
 AimbotSection:NewSlider("FOV Radius", "Circle size", 500, 50, function(s) CurrentSettings.FOV = s end)
+
+local ESPSection = VisualTab:NewSection("ESP Settings")
 ESPSection:NewToggle("Enable ESP", "Show Names", function(state) CurrentSettings.ESPEnabled = state end)
+ESPSection:NewToggle("Show FOV Circle", "Toggle Visibility", function(state) CurrentSettings.FOVVisible = state end)
 
--- ====== KEYBIND LOGIC (E และ F) ======
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if gpe then return end -- ไม่ทำงานถ้ากำลังพิมพ์แชท
+local KeySection = SettingTab:NewSection("Keybinds")
+KeySection:NewKeybind("Hide/Show UI", "RightControl to Toggle", Enum.KeyCode.RightControl, function() Library:ToggleLib() end)
 
-    -- กด E เพื่อเปิด/ปิด Aimbot
-    if input.KeyCode == Enum.KeyCode.E then
-        CurrentSettings.AimbotEnabled = not CurrentSettings.AimbotEnabled
-        -- อัปเดตสถานะใน UI ให้ตรงกับที่เรากดปุ่ม (Optional)
-        Library:Notify("Aimbot: " .. (CurrentSettings.AimbotEnabled and "ON" or "OFF"))
-    end
+-- ====== [[ ระบบปุ่มเปิด/ปิดหน้าจอ (Floating Button) ]] ======
+local OpenGui = Instance.new("ScreenGui")
+local OpenButton = Instance.new("TextButton")
 
-    -- กด F เพื่อสลับหัว/ตัว
-    if input.KeyCode == Enum.KeyCode.F then
-        if CurrentSettings.TargetPart == "Head" then
-            CurrentSettings.TargetPart = "HumanoidRootPart"
-        else
-            CurrentSettings.TargetPart = "Head"
-        end
-        Library:Notify("Targeting: " .. CurrentSettings.TargetPart)
-    end
+OpenGui.Name = "OpenGui"
+OpenGui.Parent = game:GetService("CoreGui")
+OpenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+OpenButton.Name = "OpenButton"
+OpenButton.Parent = OpenGui
+OpenButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- สีเลือดแบบ Kavo
+OpenButton.Position = UDim2.new(0, 10, 0, 400)
+OpenButton.Size = UDim2.new(0, 80, 0, 30)
+OpenButton.Font = Enum.Font.SourceSansBold
+OpenButton.Text = "OPEN / HIDE"
+OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+OpenButton.TextSize = 14
+OpenButton.Draggable = true -- มึงลากปุ่มไปวางตรงไหนก็ได้
+
+OpenButton.MouseButton1Click:Connect(function()
+    Library:ToggleLib()
 end)
 
 -- ====== MAIN LOOP ======
 RunService.RenderStepped:Connect(function()
     fovCircle.Position = UserInputService:GetMouseLocation()
     fovCircle.Radius = CurrentSettings.FOV
-    fovCircle.Visible = CurrentSettings.AimbotEnabled
+    fovCircle.Visible = CurrentSettings.AimbotEnabled and CurrentSettings.FOVVisible
     fovCircle.Color = CurrentSettings.AimbotEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 
     if CurrentSettings.AimbotEnabled then
